@@ -149,21 +149,25 @@ export default function WeekCalendar({
                       {DAY_NAMES[di]}
                     </span>
 
-                    {/* Date */}
-                    <span className={`text-sm font-bold leading-none mb-1 ${isToday ? 'text-pink-600' : 'text-gray-700'}`}>
+                    {/* Date — fixed height so today circle doesn't shift layout */}
+                    <div className="h-7 flex items-center justify-center mb-0.5">
                       {isToday ? (
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-pink-500 text-white text-xs">
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-pink-500 text-white text-xs font-bold">
                           {date.getDate()}
                         </span>
-                      ) : date.getDate()}
-                    </span>
+                      ) : (
+                        <span className="text-sm font-bold text-gray-700">{date.getDate()}</span>
+                      )}
+                    </div>
 
-                    {/* Holiday */}
-                    {holiday && (
-                      <span className="text-[9px] text-red-400 text-center leading-tight mb-1 w-full truncate px-0.5" title={holiday.name}>
-                        {holiday.name}
-                      </span>
-                    )}
+                    {/* Holiday — fixed height, always occupies space */}
+                    <div className="h-4 flex items-center justify-center w-full mb-1">
+                      {holiday && (
+                        <span className="text-[9px] text-red-400 text-center leading-tight w-full truncate px-0.5" title={holiday.name}>
+                          {holiday.name}
+                        </span>
+                      )}
+                    </div>
 
                     <div className="w-full h-px bg-pink-50 my-1" />
 
