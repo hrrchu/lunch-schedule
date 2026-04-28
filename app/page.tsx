@@ -37,7 +37,7 @@ export default function Home() {
   }, [fetchHolidays]);
 
   return (
-    <main className="min-h-screen bg-rose-50 py-8 px-4">
+    <main className="min-h-screen bg-sky-50 py-8 px-4">
       <div className="max-w-xl mx-auto">
         {/* Header */}
         <div className="text-center mb-7">
@@ -46,29 +46,22 @@ export default function Home() {
         </div>
 
         {/* User selector */}
-        <div className="flex flex-col items-center gap-3 mb-7">
-          <p className="text-sm text-pink-500 font-medium">나는?</p>
-          <div className="flex gap-3">
-            {USERS.map(u => (
-              <button
-                key={u.id}
-                onClick={() => selectUser(u.id)}
-                className={[
-                  'w-16 h-16 rounded-2xl text-3xl flex items-center justify-center shadow-sm border transition-all',
-                  currentUser === u.id
-                    ? 'bg-pink-500 border-pink-400 shadow-pink-200 shadow-md scale-110'
-                    : 'bg-white border-pink-100 hover:bg-pink-50 hover:scale-105',
-                ].join(' ')}
-              >
-                {u.emoji}
-              </button>
-            ))}
-          </div>
-          {currentUser && (
-            <p className="text-xs text-pink-400">
-              {currentUser === 'snail' ? '🐚' : '🪨'} 로 입력 중 — 내 칸을 클릭해서 변경하세요
-            </p>
-          )}
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <span className="text-xs text-sky-500 font-medium">나는?</span>
+          {USERS.map(u => (
+            <button
+              key={u.id}
+              onClick={() => selectUser(u.id)}
+              className={[
+                'w-9 h-9 rounded-xl text-xl flex items-center justify-center shadow-sm border transition-all',
+                currentUser === u.id
+                  ? 'bg-sky-400 border-sky-300 shadow-sky-100 shadow-md scale-110'
+                  : 'bg-white border-sky-100 hover:bg-sky-50 hover:scale-105',
+              ].join(' ')}
+            >
+              {u.emoji}
+            </button>
+          ))}
         </div>
 
         {currentUser ? (
