@@ -1,0 +1,87 @@
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import WeekCalendar from '@/components/WeekCalendar';
+import HolidayManager from '@/components/HolidayManager';
+import type { UserId, CustomHoliday } from '@/lib/types';
+
+const USERS: { id: UserId; emoji: string }[] = [
+  { id: 'snail', emoji: '🐚' },
+  { id: 'rock', emoji: '🪨' },
+];
+
+export default function Home() {
+  const [currentUser, setCurrentUser] = useState<UserId | null>(null);
+  const [customHolidays, setCustomHolidays] = useState<CustomHoliday[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('lunch-user') as UserId | null;
+    if (saved === 'snail' || saved === 'rock') {
+      setCurrentUser(saved);
+    }
+  }, []);
+
+  const selectUser = (uid: UserId) => {
+    setCurrentUser(uid);
+    localStorage.setItem('lunch-user', uid);
+  };
+
+  const fetchHolidays = useCallback(async () => {
+    const { data } = await supabase.from('custom_holidays').select('*');
+    if (data) setCustomHolidays(data as CustomHoliday[]);
+  }, []);
+
+  useEffect(() => {
+    fetchHolidays();
+  }, [fetchHolidays]);
+
+  return (
+    <main className="min-h-screen bg-rose-50 py-8 px-4">
+      <div className="max-w-xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-7">
+          <h1 className="text-2xl font-bold text-pink-800">점심 체크 🍱</h1>
+          <p className="text-sm text-pink-400 mt-1">점심 약속 & 휴가 공유</p>
+        </div>
+
+        {/* User selector */}
+        <div className="flex flex-col items-center gap-3 mb-7">
+          <p className="text-sm text-pink-500 font-medium">나는?</p>
+          <div className="flex gap-3">
+            {USERS.map(u => (
+              <button
+                key={u.id}
+                onClick={() => selectUser(u.id)}
+                className={[
+                  'w-16 h-16 rounded-2xl text-3xl flex items-center justify-center shadow-sm border transition-all',
+                  currentUser === u.id
+                    ? 'bg-pink-500 border-pink-400 shadow-pink-200 shadow-md scale-110'
+                    : 'bg-white border-pink-100 hover:bg-pink-50 hover:scale-105',
+                ].join(' ')}
+              >
+                {u.emoji}
+              </button>
+            ))}
+          </div>
+          {currentUser && (
+            <p className="text-xs text-pink-400">
+              {currentUser === 'snail' ? '🐚' : '🪨'} 로 입력 중 — 내 칸을 클릭해서 변경하세요
+            </p>
+          )}
+        </div>
+
+        {currentUser ? (
+          <>
+            <WeekCalendar currentUser={currentUser} customHolidays={customHolidays} />
+            <HolidayManager holidays={customHolidays} onChange={fetchHolidays} />
+          </>
+        ) : (
+          <div className="text-center text-pink-300 mt-16 text-sm">
+            위에서 나를 선택해 주세요 👆
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
