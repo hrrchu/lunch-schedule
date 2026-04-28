@@ -37,7 +37,7 @@ export default function Home() {
   }, [fetchHolidays]);
 
   return (
-    <main className="min-h-screen bg-sky-50 py-8 px-4">
+    <main className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-xl mx-auto">
         {/* Header */}
         <div className="text-center mb-7">
@@ -53,7 +53,7 @@ export default function Home() {
               key={u.id}
               onClick={() => selectUser(u.id)}
               className={[
-                'w-9 h-9 rounded-xl text-xl flex items-center justify-center shadow-sm border transition-all',
+                'w-12 h-12 rounded-xl text-3xl flex items-center justify-center shadow-sm border transition-all',
                 currentUser === u.id
                   ? 'bg-sky-400 border-sky-300 shadow-sky-100 shadow-md scale-110'
                   : 'bg-white border-sky-100 hover:bg-sky-50 hover:scale-105',

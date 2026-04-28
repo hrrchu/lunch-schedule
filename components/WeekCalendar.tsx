@@ -6,7 +6,7 @@ import { KOREAN_HOLIDAYS } from '@/lib/holidays';
 import type { Schedule, CustomHoliday, UserId, Status } from '@/lib/types';
 
 const DAY_NAMES = ['월', '화', '수', '목', '금'];
-const STATUS_CYCLE: (Status | null)[] = ['lunch_solo', 'vacation', null];
+const STATUS_CYCLE: (Status | null)[] = ['lunch_solo', 'vacation', 'pass', null];
 
 function getWeekdays(weekOffset: number): Date[] {
   const today = new Date();
@@ -37,8 +37,9 @@ export default function WeekCalendar({
   customHolidays: CustomHoliday[];
 }) {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [pageOffset, setPageOffset] = useState(0);
 
-  const weeks = Array.from({ length: 5 }, (_, i) => getWeekdays(i));
+  const weeks = Array.from({ length: 5 }, (_, i) => getWeekdays(pageOffset * 5 + i));
   const startDate = toDateStr(weeks[0][0]);
   const endDate = toDateStr(weeks[4][4]);
 
@@ -84,11 +85,36 @@ export default function WeekCalendar({
     null;
 
   const todayStr = toDateStr(new Date());
-  const statusEmoji = (s: Status | null) => s === 'lunch_solo' ? '🍱' : s === 'vacation' ? '🏖️' : null;
-  const statusLabel = (s: Status | null) => s === 'lunch_solo' ? '따로' : s === 'vacation' ? '휴가' : null;
+  const statusEmoji = (s: Status | null) => s === 'lunch_solo' ? '🍔' : s === 'vacation' ? '🏖️' : s === 'pass' ? '❌' : null;
+  const statusLabel = (s: Status | null) => s === 'lunch_solo' ? '따로' : s === 'vacation' ? '휴가' : s === 'pass' ? 'pass' : null;
+
+  const rangeLabel = (() => {
+    const first = weeks[0][0];
+    const last = weeks[4][4];
+    if (first.getMonth() === last.getMonth())
+      return `${first.getFullYear()}년 ${first.getMonth() + 1}월`;
+    return `${first.getMonth() + 1}월 – ${last.getMonth() + 1}월`;
+  })();
 
   return (
     <div className="w-full flex flex-col gap-4">
+      {/* Page navigation */}
+      <div className="flex items-center justify-between px-1">
+        <button
+          onClick={() => setPageOffset(p => p - 1)}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition text-sm font-medium text-gray-600"
+        >
+          ‹ 이전
+        </button>
+        <span className="text-sm font-semibold text-gray-600">{rangeLabel}</span>
+        <button
+          onClick={() => setPageOffset(p => p + 1)}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 transition text-sm font-medium text-gray-600"
+        >
+          다음 ›
+        </button>
+      </div>
+
       {weeks.map((days, wi) => {
         const firstDay = days[0];
         const monthLabel = `${firstDay.getMonth() + 1}월 ${Math.ceil(firstDay.getDate() / 7)}주`;
@@ -149,7 +175,7 @@ export default function WeekCalendar({
                         currentUser === 'snail' ? 'hover:bg-pink-100 cursor-pointer ring-1 ring-pink-200' : 'cursor-default',
                       ].join(' ')}
                     >
-                      <span className="text-base leading-none">{statusEmoji(snailStatus) ?? '🐚'}</span>
+                      <span className="text-3xl leading-none">{statusEmoji(snailStatus) ?? '🐚'}</span>
                       <span className={`text-[9px] mt-0.5 ${snailStatus ? 'text-pink-500 font-medium' : 'text-transparent select-none'}`}>
                         {statusLabel(snailStatus) ?? '·'}
                       </span>
@@ -163,7 +189,7 @@ export default function WeekCalendar({
                         currentUser === 'rock' ? 'hover:bg-pink-100 cursor-pointer ring-1 ring-pink-200' : 'cursor-default',
                       ].join(' ')}
                     >
-                      <span className="text-base leading-none">{statusEmoji(rockStatus) ?? '🪨'}</span>
+                      <span className="text-3xl leading-none">{statusEmoji(rockStatus) ?? '🪨'}</span>
                       <span className={`text-[9px] mt-0.5 ${rockStatus ? 'text-pink-500 font-medium' : 'text-transparent select-none'}`}>
                         {statusLabel(rockStatus) ?? '·'}
                       </span>
@@ -177,9 +203,10 @@ export default function WeekCalendar({
       })}
 
       {/* Legend */}
-      <div className="flex gap-6 justify-center text-sm text-gray-400">
-        <span>🍱 점심따로</span>
+      <div className="flex gap-4 justify-center text-sm text-gray-400">
+        <span>🍔 점심따로</span>
         <span>🏖️ 휴가</span>
+        <span>❌ pass</span>
       </div>
     </div>
   );
