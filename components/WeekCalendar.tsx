@@ -6,7 +6,7 @@ import { KOREAN_HOLIDAYS } from '@/lib/holidays';
 import type { Schedule, CustomHoliday, UserId, Status } from '@/lib/types';
 
 const DAY_NAMES = ['월', '화', '수', '목', '금'];
-const STATUS_CYCLE: (Status | null)[] = ['lunch_solo', 'vacation', 'pass', null];
+const STATUS_CYCLE: (Status | null)[] = ['together', 'lunch_solo', 'vacation', 'pass', null];
 
 function getWeekdays(weekOffset: number): Date[] {
   const today = new Date();
@@ -85,8 +85,8 @@ export default function WeekCalendar({
     null;
 
   const todayStr = toDateStr(new Date());
-  const statusEmoji = (s: Status | null) => s === 'lunch_solo' ? '🍔' : s === 'vacation' ? '🏖️' : s === 'pass' ? '❌' : null;
-  const statusLabel = (s: Status | null) => s === 'lunch_solo' ? '따로' : s === 'vacation' ? '휴가' : s === 'pass' ? 'pass' : null;
+  const statusEmoji = (s: Status | null) => s === 'lunch_solo' ? '🍔' : s === 'vacation' ? '🏖️' : s === 'pass' ? '❌' : s === 'together' ? '🥩' : null;
+  const statusLabel = (s: Status | null) => s === 'lunch_solo' ? '따로' : s === 'vacation' ? '휴가' : s === 'pass' ? 'pass' : s === 'together' ? '같이' : null;
 
   const rangeLabel = (() => {
     const first = weeks[0][0];
@@ -207,8 +207,9 @@ export default function WeekCalendar({
       })}
 
       {/* Legend */}
-      <div className="flex gap-4 justify-center text-sm text-gray-400">
-        <span>🍔 점심따로</span>
+      <div className="flex gap-4 justify-center text-sm text-gray-400 flex-wrap">
+        <span>🥩 같이</span>
+        <span>🍔 따로</span>
         <span>🏖️ 휴가</span>
         <span>❌ pass</span>
       </div>

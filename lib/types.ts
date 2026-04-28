@@ -1,5 +1,5 @@
 export type UserId = 'snail' | 'rock';
-export type Status = 'lunch_solo' | 'vacation' | 'pass';
+export type Status = 'lunch_solo' | 'vacation' | 'pass' | 'together';
 
 export interface Schedule {
   id: string;
