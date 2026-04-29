@@ -29,6 +29,11 @@ function toDateStr(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+const statusEmoji = (s: Status | null) =>
+  s === 'lunch_solo' ? '🍔' : s === 'vacation' ? '🏖️' : s === 'pass' ? '❌' : s === 'together' ? '🥩' : null;
+const statusLabel = (s: Status | null) =>
+  s === 'lunch_solo' ? '따로' : s === 'vacation' ? '휴가' : s === 'pass' ? 'pass' : s === 'together' ? '같이' : null;
+
 export default function WeekCalendar({
   currentUser,
   customHolidays,
@@ -38,6 +43,7 @@ export default function WeekCalendar({
 }) {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [pageOffset, setPageOffset] = useState(0);
+  const [memoEdits, setMemoEdits] = useState<Record<string, string>>({});
 
   const weeks = Array.from({ length: 5 }, (_, i) => getWeekdays(pageOffset * 5 + i));
   const startDate = toDateStr(weeks[0][0]);
@@ -61,23 +67,33 @@ export default function WeekCalendar({
     return () => { supabase.removeChannel(channel); };
   }, [fetchSchedules]);
 
-  const getStatus = (uid: UserId, date: string): Status | null =>
-    schedules.find(s => s.user_id === uid && s.date === date)?.status ?? null;
+  const getSchedule = (uid: UserId, date: string) =>
+    schedules.find(s => s.user_id === uid && s.date === date) ?? null;
 
   const toggleStatus = async (date: string) => {
-    const current = getStatus(currentUser, date);
+    const current = getSchedule(currentUser, date)?.status ?? null;
     const idx = STATUS_CYCLE.indexOf(current);
     const next = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
     if (next === null) {
       await supabase.from('schedules').delete().match({ user_id: currentUser, date });
     } else {
+      const existing = getSchedule(currentUser, date);
       await supabase.from('schedules').upsert(
-        { user_id: currentUser, date, status: next },
+        { user_id: currentUser, date, status: next, memo: existing?.memo ?? null },
         { onConflict: 'user_id,date' }
       );
     }
     fetchSchedules();
   };
+
+  const saveMemo = async (date: string, memo: string) => {
+    const existing = getSchedule(currentUser, date);
+    if (!existing) return;
+    await supabase.from('schedules').update({ memo: memo || null }).match({ user_id: currentUser, date });
+    fetchSchedules();
+  };
+
+  const memoKey = (uid: UserId, date: string) => `${uid}:${date}`;
 
   const getHoliday = (dateStr: string) =>
     KOREAN_HOLIDAYS.find(h => h.date === dateStr) ??
@@ -85,8 +101,6 @@ export default function WeekCalendar({
     null;
 
   const todayStr = toDateStr(new Date());
-  const statusEmoji = (s: Status | null) => s === 'lunch_solo' ? '🍔' : s === 'vacation' ? '🏖️' : s === 'pass' ? '❌' : s === 'together' ? '🥩' : null;
-  const statusLabel = (s: Status | null) => s === 'lunch_solo' ? '따로' : s === 'vacation' ? '휴가' : s === 'pass' ? 'pass' : s === 'together' ? '같이' : null;
 
   const rangeLabel = (() => {
     const first = weeks[0][0];
@@ -121,19 +135,72 @@ export default function WeekCalendar({
 
         return (
           <div key={wi} className="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden">
-            {/* Week header */}
             <div className="px-4 py-2 bg-pink-50 border-b border-pink-100">
               <span className="text-xs font-semibold text-pink-500">{monthLabel}</span>
             </div>
 
-            {/* Days grid (Mon–Fri) */}
             <div className="grid grid-cols-5">
               {days.map((date, di) => {
                 const dateStr = toDateStr(date);
                 const holiday = getHoliday(dateStr);
                 const isToday = dateStr === todayStr;
-                const snailStatus = getStatus('snail', dateStr);
-                const rockStatus = getStatus('rock', dateStr);
+                const snailSched = getSchedule('snail', dateStr);
+                const rockSched = getSchedule('rock', dateStr);
+
+                const renderUser = (uid: UserId, sched: Schedule | null) => {
+                  const isMe = uid === currentUser;
+                  const key = memoKey(uid, dateStr);
+                  const localMemo = memoEdits[key];
+                  const displayMemo = localMemo !== undefined ? localMemo : (sched?.memo ?? '');
+
+                  return (
+                    <div key={uid} className={`w-full flex flex-col items-center ${isMe ? 'mb-1' : ''}`}>
+                      {/* Emoji button */}
+                      <button
+                        onClick={() => isMe && toggleStatus(dateStr)}
+                        className={[
+                          'w-full flex flex-col items-center rounded-lg py-1 transition-colors',
+                          isMe ? 'hover:bg-pink-100 cursor-pointer ring-1 ring-pink-200' : 'cursor-default',
+                        ].join(' ')}
+                      >
+                        <span className="text-3xl leading-none">
+                          {statusEmoji(sched?.status ?? null) ?? (uid === 'snail' ? '🐚' : '🪨')}
+                        </span>
+                        <span className={`text-[9px] mt-0.5 ${sched?.status ? 'text-pink-500 font-medium' : 'text-transparent select-none'}`}>
+                          {statusLabel(sched?.status ?? null) ?? '·'}
+                        </span>
+                      </button>
+
+                      {/* Memo */}
+                      {sched?.status && (
+                        isMe ? (
+                          <input
+                            type="text"
+                            value={displayMemo}
+                            placeholder="누구랑?"
+                            maxLength={10}
+                            onChange={e => setMemoEdits(prev => ({ ...prev, [key]: e.target.value }))}
+                            onBlur={async () => {
+                              await saveMemo(dateStr, displayMemo);
+                              setMemoEdits(prev => { const n = { ...prev }; delete n[key]; return n; });
+                            }}
+                            onClick={e => e.stopPropagation()}
+                            className="w-full text-center text-[10px] text-gray-500 bg-gray-50 border border-gray-200 rounded-md px-1 py-0.5 mt-0.5 focus:outline-none focus:border-pink-300 placeholder:text-gray-300"
+                          />
+                        ) : (
+                          <div className="h-5 flex items-center justify-center w-full mt-0.5">
+                            {sched.memo && (
+                              <span className="text-[10px] text-gray-400 truncate px-1" title={sched.memo}>
+                                {sched.memo}
+                              </span>
+                            )}
+                          </div>
+                        )
+                      )}
+                      {!sched?.status && <div className="h-5" />}
+                    </div>
+                  );
+                };
 
                 return (
                   <div
@@ -144,12 +211,8 @@ export default function WeekCalendar({
                       isToday ? 'bg-pink-50' : '',
                     ].join(' ')}
                   >
-                    {/* Day name */}
-                    <span className="text-xs font-semibold text-gray-400 mb-0.5">
-                      {DAY_NAMES[di]}
-                    </span>
+                    <span className="text-xs font-semibold text-gray-400 mb-0.5">{DAY_NAMES[di]}</span>
 
-                    {/* Date — fixed height so today circle doesn't shift layout */}
                     <div className="h-7 flex items-center justify-center mb-0.5">
                       {isToday ? (
                         <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-pink-500 text-white text-xs font-bold">
@@ -160,7 +223,6 @@ export default function WeekCalendar({
                       )}
                     </div>
 
-                    {/* Holiday — fixed height, always occupies space */}
                     <div className="h-4 flex items-center justify-center w-full mb-1">
                       {holiday && (
                         <span className="text-[9px] text-red-400 text-center leading-tight w-full truncate px-0.5" title={holiday.name}>
@@ -171,33 +233,8 @@ export default function WeekCalendar({
 
                     <div className="w-full h-px bg-pink-50 my-1" />
 
-                    {/* 🐚 */}
-                    <button
-                      onClick={() => currentUser === 'snail' && toggleStatus(dateStr)}
-                      className={[
-                        'w-full flex flex-col items-center rounded-lg py-1 transition-colors',
-                        currentUser === 'snail' ? 'hover:bg-pink-100 cursor-pointer ring-1 ring-pink-200' : 'cursor-default',
-                      ].join(' ')}
-                    >
-                      <span className="text-3xl leading-none">{statusEmoji(snailStatus) ?? '🐚'}</span>
-                      <span className={`text-[9px] mt-0.5 ${snailStatus ? 'text-pink-500 font-medium' : 'text-transparent select-none'}`}>
-                        {statusLabel(snailStatus) ?? '·'}
-                      </span>
-                    </button>
-
-                    {/* 🪨 */}
-                    <button
-                      onClick={() => currentUser === 'rock' && toggleStatus(dateStr)}
-                      className={[
-                        'w-full flex flex-col items-center rounded-lg py-1 transition-colors',
-                        currentUser === 'rock' ? 'hover:bg-pink-100 cursor-pointer ring-1 ring-pink-200' : 'cursor-default',
-                      ].join(' ')}
-                    >
-                      <span className="text-3xl leading-none">{statusEmoji(rockStatus) ?? '🪨'}</span>
-                      <span className={`text-[9px] mt-0.5 ${rockStatus ? 'text-pink-500 font-medium' : 'text-transparent select-none'}`}>
-                        {statusLabel(rockStatus) ?? '·'}
-                      </span>
-                    </button>
+                    {renderUser('snail', snailSched)}
+                    {renderUser('rock', rockSched)}
                   </div>
                 );
               })}
@@ -206,7 +243,6 @@ export default function WeekCalendar({
         );
       })}
 
-      {/* Legend */}
       <div className="flex gap-4 justify-center text-sm text-gray-400 flex-wrap">
         <span>🥩 같이</span>
         <span>🍔 따로</span>

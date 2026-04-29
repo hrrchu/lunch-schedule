@@ -6,6 +6,7 @@ export interface Schedule {
   user_id: UserId;
   date: string;
   status: Status;
+  memo?: string;
 }
 
 export interface CustomHoliday {
