@@ -185,12 +185,12 @@ export default function WeekCalendar({
                               setMemoEdits(prev => { const n = { ...prev }; delete n[key]; return n; });
                             }}
                             onClick={e => e.stopPropagation()}
-                            className="w-full text-center text-[10px] text-gray-500 bg-gray-50 border border-gray-200 rounded-md px-1 py-0.5 mt-0.5 focus:outline-none focus:border-pink-300 placeholder:text-gray-300"
+                            className="w-full text-center text-[10px] text-gray-700 bg-gray-50 border border-gray-200 rounded-md px-1 py-0.5 mt-0.5 focus:outline-none focus:border-pink-300 placeholder:text-gray-400"
                           />
                         ) : (
                           <div className="h-5 flex items-center justify-center w-full mt-0.5">
                             {sched.memo && (
-                              <span className="text-[10px] text-gray-400 truncate px-1" title={sched.memo}>
+                              <span className="text-[10px] text-gray-600 truncate px-1" title={sched.memo}>
                                 {sched.memo}
                               </span>
                             )}
