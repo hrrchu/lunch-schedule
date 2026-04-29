@@ -41,13 +41,13 @@ export default function Home() {
       <div className="max-w-xl mx-auto">
         {/* Header */}
         <div className="text-center mb-7">
-          <h1 className="text-2xl font-bold text-pink-800">점심 체크 🍱</h1>
+          <h1 className="text-2xl font-bold text-pink-800">점심 체크</h1>
           <p className="text-sm text-pink-400 mt-1">점심 약속 & 휴가 공유</p>
         </div>
 
         {/* User selector */}
         <div className="flex items-center justify-center gap-2 mb-6">
-          <span className="text-xs text-sky-500 font-medium">나는?</span>
+          <span className="text-xs text-pink-400 font-medium">나는?</span>
           {USERS.map(u => (
             <button
               key={u.id}
@@ -55,8 +55,8 @@ export default function Home() {
               className={[
                 'w-12 h-12 rounded-xl text-3xl flex items-center justify-center shadow-sm border transition-all',
                 currentUser === u.id
-                  ? 'bg-sky-400 border-sky-300 shadow-sky-100 shadow-md scale-110'
-                  : 'bg-white border-sky-100 hover:bg-sky-50 hover:scale-105',
+                  ? 'bg-pink-400 border-pink-300 shadow-pink-100 shadow-md scale-110'
+                  : 'bg-white border-pink-100 hover:bg-pink-50 hover:scale-105',
               ].join(' ')}
             >
               {u.emoji}

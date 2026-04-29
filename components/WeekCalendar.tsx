@@ -30,7 +30,7 @@ function toDateStr(d: Date): string {
 }
 
 const statusEmoji = (s: Status | null) =>
-  s === 'lunch_solo' ? '🍔' : s === 'vacation' ? '🏖️' : s === 'pass' ? '❌' : s === 'together' ? '🥩' : null;
+  s === 'lunch_solo' ? '🍔' : s === 'vacation' ? '🏖️' : s === 'pass' ? '❌' : s === 'together' ? '⚔️' : null;
 const statusLabel = (s: Status | null) =>
   s === 'lunch_solo' ? '따로' : s === 'vacation' ? '휴가' : s === 'pass' ? 'pass' : s === 'together' ? '같이' : null;
 
@@ -244,7 +244,7 @@ export default function WeekCalendar({
       })}
 
       <div className="flex gap-4 justify-center text-sm text-gray-400 flex-wrap">
-        <span>🥩 같이</span>
+        <span>⚔️ 같이</span>
         <span>🍔 따로</span>
         <span>🏖️ 휴가</span>
         <span>❌ pass</span>
