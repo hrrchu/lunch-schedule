@@ -172,7 +172,7 @@ export default function WeekCalendar({
                       </button>
 
                       {/* Memo */}
-                      {sched?.status && (
+                      {sched?.status && sched.status !== 'vacation' && (
                         isMe ? (
                           <input
                             type="text"
@@ -197,7 +197,7 @@ export default function WeekCalendar({
                           </div>
                         )
                       )}
-                      {!sched?.status && <div className="h-5" />}
+                      {(!sched?.status || sched.status === 'vacation') && <div className="h-5" />}
                     </div>
                   );
                 };
