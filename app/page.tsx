@@ -39,12 +39,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-7">
-          <h1 className="text-2xl font-bold text-pink-800">점심 체크</h1>
-          <p className="text-sm text-pink-400 mt-1">점심 약속 & 휴가 공유</p>
-        </div>
-
         {/* User selector */}
         <div className="flex items-center justify-center gap-2 mb-6">
           <span className="text-xs text-pink-400 font-medium">나는?</span>
